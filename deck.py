@@ -5,7 +5,7 @@ class Deck:
 
     def __init__(self, number_decks):
         self.deck = ['A', 2, 3, 4, 5, 6, 7, 8, 9, 10, 'J', 'Q', 'K'] * 4
-        self.deck_length = 52
+        self.deck_length = len(self.deck)
         self.number_decks = number_decks
         self.cards = None
 
