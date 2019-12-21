@@ -1,15 +1,15 @@
-# This is the basic player, aka dealer
-
+# Global 'special' cards
 facecards = ['J', 'Q', 'K']
 ace = 'A'
 
-# Actions
+# Global Actions
 stand = 'stand'
 hit = 'hit'
 double = 'double'
 split = 'split'
 
 
+# This is the basic player, aka dealer
 class Player:
 
     def __init__(self, name):

@@ -66,7 +66,7 @@ def player_turn(player, deck, upcard=None):
         elif player.action == 'double':
             player.cards.append(deck.draw())
             break
-        elif player.action == 'split':  # TODO: Make this work an recursivly (up to 4 times)
+        elif player.action == 'split':  # TODO: Add splitting logic and recurse up to 4 times (max allowed splits)
             player.cards.append(deck.draw())
             player.act(upcard)
             break
@@ -78,7 +78,6 @@ def main():
     number_hands = 10000
     deck = Deck(number_decks)
 
-    # Should be one player class with super class dealer hit method.
     dealer = Player("dealer")
     default_player = Player("default")
     common_player = Common("common")
@@ -141,17 +140,13 @@ def main():
             total_bet += bet
 
         # After, record stats
-        # Should be taking the limit of the wins / losses to find percent
+        # TODO: Take the limit of results to get more accurate win percent
         win_percentage = (player.wins / total_bet) * 100
-        lose_percentage = (dealer.wins / total_bet) * 100
         push_percentage = (pushed / number_hands) * 100
 
-        # print(f"Dealer wins: {dealer.wins}")
-        # print(f"{player.name} wins: {player.wins}")
         print(f"Stats for {player.name}: ")
-        # print(f"    Pushed hands percentage: {push_percentage}")
+        print(f"    Pushed hands percentage: {push_percentage}")
         print(f"    Win percentage: {win_percentage}")
-        # print(f"    Lose percentage: {lose_percentage}")
         print(f"    Net points: {player.balance}")
         print()
 
