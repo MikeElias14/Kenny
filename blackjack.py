@@ -1,5 +1,14 @@
 from deck import Deck
-from players import Player, Common, Advanced
+from players import Dealer, Common, Advanced
+
+from globals import (
+    hit,
+    stand,
+    split,
+    double,
+    facecards,
+    ace
+)
 
 
 def create_deck(self):
@@ -36,40 +45,45 @@ def get_number_hands(self):
 
 def record_outcome(player, dealer, bet):
     if player.total > 21:
-        dealer.wins += bet
+        dealer.wins += 1
         player.balance -= bet
+        player.won_previous = False
     elif dealer.total > 21:
-        player.wins += bet
+        player.wins += 1
         player.balance += bet
+        player.won_previous = True
     elif player.total < dealer.total <= 21:
-        dealer.wins += bet
+        dealer.wins += 1
         player.balance -= bet
+        player.won_previous = False
     elif dealer.total < player.total <= 21:
-        player.wins += bet
+        player.wins += 1
         player.balance += bet
+        player.won_previous = True
     elif dealer.total == player.total:
         bet = 0
     else:
-        player.wins += bet
+        player.wins += 1
         player.balance += bet
     return bet
 
 
 def player_turn(player, deck, upcard=None):
     player.act(upcard)
-    while True:
-        if player.action == 'hit':
+    turn_over = False
+    while not turn_over:
+        if player.action == hit:
             player.cards.append(deck.draw())
             player.act(upcard)
-        elif player.action == 'stand':
-            break
-        elif player.action == 'double':
+        elif player.action == stand:
+            turn_over = True
+        elif player.action == double:
             player.cards.append(deck.draw())
-            break
-        elif player.action == 'split':  # TODO: Add splitting logic and recurse up to 4 times (max allowed splits)
+            turn_over = True
+        elif player.action == split:  # TODO: Add splitting logic and recurse up to 4 times (max allowed splits)
             player.cards.append(deck.draw())
             player.act(upcard)
-            break
+            turn_over = True
     return
 
 
@@ -78,18 +92,18 @@ def main():
     number_hands = 10000
     deck = Deck(number_decks)
 
-    dealer = Player("dealer")
-    default_player = Player("default")
-    common_player = Common("common")
-    advanced_player = Advanced("advanced")
+    players = [
+        Common("common"),
+        Advanced("advanced")
+    ]
 
-    players = [default_player, common_player, advanced_player]
+    dealer = Dealer("dealer")
 
     print(f"Playing {number_hands} hands with {number_decks} decks.")
     for player in players:
-        total_bet = 0
         dealer.wins = 0
         pushed = 0
+        bet = 1
         for hand in range(number_hands):
 
             # Shuffle every hand (as in online)
@@ -97,30 +111,19 @@ def main():
             player.cards = []
             dealer.cards = []
 
-            bet = 1
+            # Betting strategy
+            # if not player.won_previous:
+            #     bet *= 2
+            # else:
+            #     bet = 1
+
+            if bet > player.largest_bet:
+                player.largest_bet = bet
 
             # Deal two cards
             for i in range(2):
                 player.cards.append(deck.draw())
                 dealer.cards.append(deck.draw())
-
-            player.calculate_total()
-            dealer.calculate_total()
-
-            # blackjacks
-            if dealer.total == 21 and player.total != 21:
-                dealer.wins += bet
-                player.balance -= bet
-                total_bet += bet
-                continue
-            elif player.total == 21 and dealer.total != 21:
-                player.wins += bet
-                player.balance += bet * 1.5
-                total_bet += bet
-                continue
-            elif player.total == dealer.total == 21:
-                pushed += bet
-                continue
 
             upcard = dealer.cards[0]
 
@@ -133,21 +136,36 @@ def main():
             player.calculate_total()
             dealer.calculate_total()
 
+            # blackjacks
+            if dealer.total == 21 and player.total != 21:
+                dealer.wins += 1
+                player.balance -= bet
+                player.won_previous = False
+                continue
+            elif player.total == 21 and dealer.total != 21:
+                player.wins += 1
+                player.balance += bet * 1.5
+                player.won_previous = True
+                continue
+            elif player.total == dealer.total == 21:
+                pushed += 1
+                continue
+
             # Record outcome
             if player.action == 'double':
-                bet = bet * 2
+                bet *= 2
             bet = record_outcome(player, dealer, bet)
-            total_bet += bet
 
         # After, record stats
         # TODO: Take the limit of results to get more accurate win percent
-        win_percentage = (player.wins / total_bet) * 100
+        win_percentage = (player.wins / number_hands) * 100
         push_percentage = (pushed / number_hands) * 100
 
         print(f"Stats for {player.name}: ")
         print(f"    Pushed hands percentage: {push_percentage}")
         print(f"    Win percentage: {win_percentage}")
-        print(f"    Net points: {player.balance}")
+        print(f"    Final Balance: {player.balance}")
+        print(f"    Largest Bet: {player.largest_bet}")
         print()
 
 

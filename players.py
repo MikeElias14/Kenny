@@ -1,12 +1,11 @@
-# Global 'special' cards
-facecards = ['J', 'Q', 'K']
-ace = 'A'
-
-# Global Actions
-stand = 'stand'
-hit = 'hit'
-double = 'double'
-split = 'split'
+from globals import (
+    hit,
+    stand,
+    split,
+    double,
+    facecards,
+    ace
+)
 
 
 # This is the basic player, aka dealer
@@ -20,6 +19,8 @@ class Player:
         self.soft = False
         self.action = ''
         self.balance = 0
+        self.won_previous = False
+        self.largest_bet = 0
 
     def calculate_total(self):
         total = 0
@@ -39,6 +40,8 @@ class Player:
         self.total = total
         return
 
+
+class Dealer(Player):
     def act(self, upcard=None):
         self.calculate_total()
 
@@ -59,11 +62,11 @@ class Common(Player):
             upcard = 1
 
         # play normally, hard totals only
-        if self.total >= 17:
-            self.action = stand
-        elif self.total >= 13 and upcard in [2, 3, 4, 5, 6]:
-            self.action = stand
-        elif self.total == 12 and upcard in [4, 5, 6]:
+        if (
+                self.total >= 17) or (
+                self.total >= 13 and upcard in [2, 3, 4, 5, 6]) or (
+                self.total == 12 and upcard in [4, 5, 6]
+        ):
             self.action = stand
         else:
             self.action = hit
@@ -127,7 +130,7 @@ class Advanced(Player):
                 elif self.total == 18 and upcard in [7, 8]:
                     self.action = stand
 
-            # if no action, treat normally
+            # if still no action, Hard Totals
             if self.action is None:
                 if self.total >= 17:
                     self.action = stand
